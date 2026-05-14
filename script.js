@@ -1,6 +1,7 @@
 // Mobile Menu Toggle
 const menuToggle = document.getElementById('menuToggle');
 const navbar = document.getElementById('navbar');
+const darkModeToggle = document.getElementById('darkModeToggle');
 
 if (menuToggle) {
   menuToggle.addEventListener('click', () => {
@@ -10,7 +11,6 @@ if (menuToggle) {
       : 'rotate(0)';
   });
 
-  // Close menu when a link is clicked
   document.querySelectorAll('nav a').forEach(link => {
     link.addEventListener('click', () => {
       navbar.classList.remove('active');
@@ -19,7 +19,23 @@ if (menuToggle) {
   });
 }
 
-// Smooth Scrolling for anchor links
+// Dark Mode Toggle
+if (darkModeToggle) {
+  const isDarkMode = localStorage.getItem('darkMode') === 'true';
+  if (isDarkMode) {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = '☀️';
+  }
+
+  darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+  });
+}
+
+// Smooth Scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     const href = this.getAttribute('href');
@@ -33,7 +49,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// Intersection Observer for fade-in animations
+// Intersection Observer for animations
 const observerOptions = {
   threshold: 0.1,
   rootMargin: '0px 0px -100px 0px'
@@ -49,7 +65,6 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-// Observe all sections
 document.querySelectorAll('section').forEach(section => {
   section.style.opacity = '0';
   observer.observe(section);
@@ -57,53 +72,60 @@ document.querySelectorAll('section').forEach(section => {
 
 // Header shadow on scroll
 const header = document.querySelector('header');
-let lastScrollTop = 0;
-
 window.addEventListener('scroll', () => {
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   
   if (scrollTop > 50) {
     header.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.15)';
-    header.style.padding = '15px 8%';
   } else {
     header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-    header.style.padding = '20px 8%';
   }
-  
-  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
 });
 
-// Lazy loading for images
-if ('IntersectionObserver' in window) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        img.src = img.dataset.src || img.src;
-        img.classList.add('loaded');
-        observer.unobserve(img);
-      }
+// FAQ Accordion
+document.querySelectorAll('.faq-question').forEach(question => {
+  question.addEventListener('click', function() {
+    const answer = this.nextElementSibling;
+    const isOpen = answer.classList.contains('open');
+    
+    document.querySelectorAll('.faq-answer').forEach(a => {
+      a.classList.remove('open');
     });
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.classList.remove('active');
+    });
+    
+    if (!isOpen) {
+      answer.classList.add('open');
+      this.classList.add('active');
+    }
   });
+});
 
-  document.querySelectorAll('img[data-src]').forEach(img => {
-    imageObserver.observe(img);
+// Newsletter Form
+const newsletterForm = document.getElementById('newsletterForm');
+if (newsletterForm) {
+  newsletterForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = this.querySelector('input[type="email"]').value;
+    alert('Thank you for subscribing! Check your email for wellness tips.');
+    this.reset();
   });
 }
 
-// Email validation helper
+// Email validation
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Phone validation helper
+// Phone validation
 function validatePhone(phone) {
   const phoneRegex = /^[0-9]{10}$/;
   return phoneRegex.test(phone.replace(/\D/g, ''));
 }
 
-// Debounce function for performance
+// Debounce function
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -116,15 +138,8 @@ function debounce(func, wait) {
   };
 }
 
-// Scroll animation debounced
-const debouncedScroll = debounce(() => {
-  // Add any additional scroll-based logic here
-}, 100);
-
-window.addEventListener('scroll', debouncedScroll);
-
 // Active navigation link on scroll
-window.addEventListener('scroll', () => {
+const debouncedScroll = debounce(() => {
   let current = '';
   const sections = document.querySelectorAll('section');
 
@@ -142,9 +157,11 @@ window.addEventListener('scroll', () => {
       link.classList.add('active');
     }
   });
-});
+}, 100);
 
-// Button click ripple effect
+window.addEventListener('scroll', debouncedScroll);
+
+// Button ripple effect
 document.querySelectorAll('.btn').forEach(button => {
   button.addEventListener('mouseenter', function() {
     this.style.transform = 'translateY(-2px)';
@@ -155,7 +172,35 @@ document.querySelectorAll('.btn').forEach(button => {
   });
 });
 
-// Performance monitoring (optional)
+// Lazy loading images
+if ('IntersectionObserver' in window) {
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        if (img.dataset.src) {
+          img.src = img.dataset.src;
+        }
+        img.classList.add('loaded');
+        observer.unobserve(img);
+      }
+    });
+  });
+
+  document.querySelectorAll('img[data-src]').forEach(img => {
+    imageObserver.observe(img);
+  });
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && navbar.classList.contains('active')) {
+    navbar.classList.remove('active');
+    menuToggle.style.transform = 'rotate(0)';
+  }
+});
+
+// Performance monitoring
 if (window.performance && window.performance.timing) {
   window.addEventListener('load', () => {
     const perfData = window.performance.timing;
@@ -164,22 +209,5 @@ if (window.performance && window.performance.timing) {
   });
 }
 
-// Service worker registration (optional - for future PWA features)
-if ('serviceWorker' in navigator) {
-  // Uncomment when service worker is available
-  // navigator.serviceWorker.register('sw.js').catch(() => {
-  //   console.log('Service Worker not available');
-  // });
-}
-
-// Keyboard navigation support
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && navbar.classList.contains('active')) {
-    navbar.classList.remove('active');
-    menuToggle.style.transform = 'rotate(0)';
-  }
-});
-
-// Log initialization
 console.log('🧘 Dirghayuyog - Yoga Classes Website Loaded Successfully!');
 console.log('Transform Your Mind, Body & Soul Through Yoga');
